@@ -3,32 +3,20 @@ import streamlit as st
 # 1. This MUST be the first command
 st.set_page_config(page_title="SlideFix AI", page_icon="🚀", layout="centered")
 
-st.title("🚀 SlideFix AI - Diagnostics")
+st.title("🚀 SlideFix AI")
 
-# 2. Debugging the Secrets Connection
-st.write("Checking configuration...")
-
+# 2. Secrets Connection
 try:
-    # Try to grab the secrets
     test_key = st.secrets["OPENAI_API_KEY"]
     test_pass = st.secrets["APP_PASSWORD"]
-    st.success("✅ Connection Successful! Secrets file found.")
-    
 except FileNotFoundError:
-    st.error("❌ ERROR: File not found.")
-    st.info("Make sure you have a folder named '.streamlit' and a file inside named 'secrets.toml'.")
-    st.stop() # Stop here
-    
-except KeyError as e:
-    st.error(f"❌ ERROR: Key missing in secrets.toml")
-    st.info(f"I found the file, but I could not find the key: {e}")
+    st.error("❌ ERROR: Secrets file not found.")
+    st.stop()
+except KeyError:
+    st.error("❌ ERROR: Key missing in secrets.toml")
     st.stop()
 
-except Exception as e:
-    st.error(f"❌ ERROR: {e}")
-    st.stop()
-
-# --- IF WE GET HERE, THE SECRETS ARE WORKING ---
+# --- SECRETS ARE WORKING ---
 
 from pptx import Presentation
 from pptx.enum.shapes import MSO_SHAPE_TYPE
@@ -59,6 +47,11 @@ with st.sidebar:
     else:
         st.write("**Plan:** Free Demo")
         st.write(f"**Uploads Used:** {st.session_state['upload_count']}/3")
+        st.write("**Limit:** Max 10 slides")
+        
+        # --- [LINK LOCATION 1: SIDEBAR] ---
+        st.markdown("---")
+        st.markdown("👉 **[Upgrade to Pro ($12)](https://accessibleslides.gumroad.com/l/fubrm)**") 
 
 # --- MAIN APP LOGIC ---
 st.markdown("### Automate PowerPoint Accessibility")
@@ -94,9 +87,14 @@ if uploaded_file:
         can_proceed = True
     else:
         if st.session_state["upload_count"] >= 3:
-            st.error("🚫 You have used your 3 free uploads. Please upgrade to Pro.")
+            st.error("🚫 You have used your 3 free uploads.")
+            # --- [LINK LOCATION 2: UPLOAD LIMIT ERROR] ---
+            st.markdown("👉 **[Click here to Upgrade to Pro ($12)](https://accessibleslides.gumroad.com/l/fubrm)**")
+            
         elif slide_count > 10:
-            st.error(f"🚫 Free limit is 10 slides. This file has {slide_count}. Upgrade to Pro.")
+            st.error(f"🚫 Free limit is 10 slides. This file has {slide_count}.")
+            # --- [LINK LOCATION 3: SLIDE LIMIT ERROR] ---
+            st.markdown("👉 **[Click here to Upgrade to Pro ($12)](https://accessibleslides.gumroad.com/l/fubrm)**")
         else:
             can_proceed = True
 
