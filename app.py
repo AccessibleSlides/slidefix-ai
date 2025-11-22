@@ -6,68 +6,58 @@ from openai import OpenAI
 import base64
 from io import BytesIO
 
-# 1. PAGE CONFIGURATION (Must be first)
+# 1. PAGE CONFIGURATION
 st.set_page_config(
-    page_title="Accessible Slides | Enterprise", 
+    page_title="Accessible Slides", 
     page_icon="♿", 
     layout="centered",
     initial_sidebar_state="expanded"
 )
 
-# --- CUSTOM CSS STYLING ---
+# --- CUSTOM CSS (Clean Enterprise Look) ---
 st.markdown("""
 <style>
-    /* Import Google Font */
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+    /* Import Font */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
 
     html, body, [class*="css"] {
         font-family: 'Inter', sans-serif;
     }
 
-    /* Title Styling */
-    h1 {
-        color: #1E3A8A; /* Dark Blue */
+    /* Headers */
+    h1, h2, h3 {
+        color: #1E3A8A; /* Navy Blue */
         font-weight: 800;
     }
-    
-    /* Sidebar Styling */
+
+    /* Sidebar adjustments */
     [data-testid="stSidebar"] {
-        background-color: #F8FAFC;
+        background-color: #F1F5F9;
         border-right: 1px solid #E2E8F0;
     }
 
-    /* Button Styling - Make the Main Button Pop */
+    /* Main Action Button Styling */
     div.stButton > button:first-child {
         width: 100%;
-        background-color: #2563EB; /* Enterprise Blue */
+        background-color: #2563EB; /* Brand Blue */
         color: white;
-        font-size: 18px;
         font-weight: bold;
         padding: 0.75rem;
-        border-radius: 10px;
+        border-radius: 8px;
         border: none;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        transition: all 0.2s ease;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
     div.stButton > button:first-child:hover {
         background-color: #1D4ED8;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        transform: translateY(-2px);
+        box-shadow: 0 4px 6px rgba(0,0,0,0.15);
     }
 
-    /* Success Box Styling */
-    .success-box {
-        padding: 1rem;
-        border-radius: 0.5rem;
-        background-color: #DCFCE7;
-        border: 1px solid #86EFAC;
-        color: #14532D;
-        text-align: center;
-        font-weight: bold;
-        margin-top: 1rem;
+    /* Success/Info Boxes */
+    .stAlert {
+        border-radius: 8px;
     }
     
-    /* Hide Streamlit Branding */
+    /* Remove Streamlit Footer */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
@@ -97,20 +87,21 @@ def verify_license(key):
 
 # --- SIDEBAR ---
 with st.sidebar:
-    st.image("https://img.icons8.com/fluency/96/accessibility.png", width=60)
-    st.markdown("### License Status")
+    st.markdown("## ♿ Access")
     
     if st.session_state["license_valid"]:
-        st.success("✅ Active")
-        st.caption(f"**Organization:**\n{st.session_state['org_name']}")
+        st.success("✅ License Active")
+        st.caption(f"**Org:** {st.session_state['org_name']}")
         
         st.markdown("---")
-        if st.button("Logout", type="secondary"):
+        if st.button("Logout"):
             st.session_state["license_valid"] = False
             st.session_state["org_name"] = ""
             st.rerun()
+            
+        st.info("This tool processes files using your Organization's private OpenAI Key.")
     else:
-        st.warning("🔒 Locked")
+        st.warning("🔒 Portal Locked")
         input_key = st.text_input("License Key", type="password")
         if st.button("Verify Access"):
             is_valid, org_email = verify_license(input_key)
@@ -122,34 +113,30 @@ with st.sidebar:
                 st.error("Invalid Key")
         
         st.markdown("---")
-        st.markdown("Don't have a key?")
         st.markdown("👉 **[Purchase Site License ($500)](https://accessibleslides.gumroad.com/l/accessibleslides_enterprise)**")
 
 # --- MAIN CONTENT ---
 
-# Hero Section
-col1, col2 = st.columns([5, 1])
-with col1:
-    st.title("Accessible Slides")
-    st.markdown("**Enterprise Edition** | Automated Section 508 Compliance")
-with col2:
-    # Just a visual spacer/logo area if needed
-    pass
-
+# Title Section
+st.title("Accessible Slides")
+st.markdown("**Enterprise Edition** | Automated Section 508 Compliance")
 st.markdown("---")
 
 # SECURITY GATE
 if not st.session_state["license_valid"]:
-    st.info("👋 **Welcome.** Please enter your Organization's License Key in the sidebar to unlock the secure portal.")
-    st.image("https://cdn.dribbble.com/users/285475/screenshots/2083086/lock.gif", width=400)
+    # Replaced broken image with native layout
+    c1, c2, c3 = st.columns([1,2,1])
+    with c2:
+        st.info("👋 **Welcome.** Please enter your Organization's License Key in the sidebar to unlock the secure portal.")
+        st.markdown("<div style='text-align: center; font-size: 60px;'>🔒</div>", unsafe_allow_html=True)
     st.stop()
 
-# 1. CONFIGURATION CARD
-with st.expander("⚙️ System Configuration", expanded=True):
-    st.caption("This tool operates using your internal OpenAI API keys for data privacy.")
+# 1. CONFIGURATION
+with st.expander("⚙️ Configuration", expanded=True):
+    st.caption("Data Privacy: Files are processed in-memory using your API key.")
     org_openai_key = st.text_input("OpenAI API Key (sk-...)", type="password")
 
-# 2. UPLOAD CARD
+# 2. UPLOAD SECTION
 st.markdown("### Upload Presentation")
 uploaded_file = st.file_uploader("Drag and drop .pptx file", type=["pptx"], label_visibility="collapsed")
 
@@ -168,18 +155,18 @@ def get_ai_desc(client, image_blob):
     except: return "Error generating text"
 
 if uploaded_file:
-    st.info(f"📄 Loaded: **{uploaded_file.name}**")
+    st.write(f"📄 **File Selected:** {uploaded_file.name}")
     
     if not org_openai_key:
-        st.error("⚠️ Please enter an API Key in the Configuration section above.")
+        st.error("⚠️ Please enter an API Key above.")
         st.stop()
 
-    # THE BIG ACTION BUTTON
+    # ACTION BUTTON
     if st.button("✨ Auto-Generate Alt Text"):
         
         try:
             client = OpenAI(api_key=org_openai_key)
-            client.models.list() # Validate Key
+            client.models.list() 
         except Exception:
             st.error("❌ Invalid OpenAI API Key.")
             st.stop()
@@ -187,7 +174,6 @@ if uploaded_file:
         prs = Presentation(uploaded_file)
         slide_count = len(prs.slides)
         
-        # Progress Bar with visual style
         progress_text = "Scanning presentation..."
         my_bar = st.progress(0, text=progress_text)
         
@@ -207,30 +193,22 @@ if uploaded_file:
         
         my_bar.empty()
         
-        # SUCCESS DASHBOARD
-        st.balloons()
-        st.markdown(f"""
-        <div class="success-box">
-            ✅ SUCCESS! Processing Complete.
-        </div>
-        """, unsafe_allow_html=True)
+        st.success("✅ Processing Complete!")
         
-        # METRICS ROW
-        m1, m2, m3 = st.columns(3)
+        # Metrics
+        m1, m2 = st.columns(2)
         with m1: st.metric("Slides Scanned", slide_count)
         with m2: st.metric("Images Fixed", processed_images)
-        with m3: st.metric("Processing Time", "Instant")
 
-        # PREPARE DOWNLOAD
+        # Download
         output = BytesIO()
         prs.save(output)
         output.seek(0)
         
-        st.markdown("### 📥 Download Result")
         st.download_button(
-            label="Download Accessible PPTX",
+            label="📥 Download Accessible PPTX",
             data=output,
             file_name=f"Accessible_{uploaded_file.name}",
             mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
-            type="primary" # Makes it fill with theme color
+            type="primary"
         )
