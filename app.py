@@ -19,38 +19,33 @@ if "license_valid" not in st.session_state:
 if "org_name" not in st.session_state:
     st.session_state["org_name"] = ""
 
-# --- LICENSE VERIFICATION FUNCTION (FIXED) ---
+# --- LICENSE VERIFICATION FUNCTION (FIXED WITH PRODUCT ID) ---
 def verify_license(key):
     """
-    Verifies the key against the specific Gumroad Product:
-    'accessibleslides_enterprise'
+    Verifies the key against the specific Gumroad Product ID.
     """
-    PRODUCT_PERMALINK = "accessibleslides_enterprise" 
+    # This ID comes directly from your error log
+    PRODUCT_ID = "RN-jQLgM_iudPwC-RnQZ6A==" 
     
     url = "https://api.gumroad.com/v2/licenses/verify"
     
-    # Payload for the POST request
+    # Payload: We use product_id instead of product_permalink
     payload = {
-        "product_permalink": PRODUCT_PERMALINK,
+        "product_id": PRODUCT_ID,
         "license_key": key.strip()
     }
     
     try:
-        # CHANGE: Use 'data' instead of 'params' for POST requests
+        # Use 'data' for POST requests
         response = requests.post(url, data=payload)
-        
-        # Debugging: Print if it fails locally so you can see in terminal
-        if response.status_code != 200:
-            print(f"Gumroad Error: {response.text}")
-
         data = response.json()
         
         if data.get("success"):
+            # Return True and the email
             return True, data['purchase']['email']
         else:
             return False, None
-    except Exception as e:
-        print(f"System Error: {e}")
+    except Exception:
         return False, None
 
 # --- SIDEBAR: LOGIN & STATUS ---
